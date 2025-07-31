@@ -1,0 +1,33 @@
+[project]
+name = "agenteval"
+version = "0.1.0"
+description = "A modular SDK for evaluating LLM outputs using metrics and LLM-as-a-judge scoring."
+authors = [
+    { name = "Animesh Uttekar", email = "animeshuttekar98@gmail.com" }
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+
+dependencies = [
+    "openai>=1.0.0",
+    "scikit-learn",
+    "nltk",
+    "transformers",
+    "numpy",
+    "tqdm",
+    "tenacity",
+    "python-dotenv",
+    "rouge-score",
+    "evaluate",
+    "httpx"
+]
+
+[project.urls]
+Homepage = "https://github.com/Animesh-Uttekar/agent-eval"
+Repository = "https://github.com/Animesh-Uttekar/agent-eval"
+Documentation = "https://github.com/Animesh-Uttekar/agent-eval#readme"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

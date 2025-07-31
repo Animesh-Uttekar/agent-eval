@@ -1,0 +1,10 @@
+openai
+langchain
+transformers
+scikit-learn
+numpy
+nltk
+pytest
+rouge-score
+torch
+# Add more as needed for metrics and LLM support
