@@ -1,4 +1,4 @@
-# 🧠 AgentEval
+# AgentEval
 
 A modular Python SDK for evaluating AI-generated outputs using both traditional metrics (like BLEU, ROUGE, METEOR, etc) and LLM-as-a-judge methods (using GPT-4, Claude, etc). Built for evaluating GenAI agents, chatbots and prompt systems with ease.
 
@@ -83,7 +83,8 @@ result = evaluator.evaluate(
 # Print result
 print(result)
 ```
-### Expected Output:
+
+### Output:
 
 ```json
 {
@@ -103,21 +104,18 @@ print(result)
       "reasoning": "The assistant's response is fluent and coherent. The sentences are well-structured, and there are no grammatical errors. The summaries of each anime series are clear and concise, providing relevant information based on the user's preferences. The transitions between the recommendations are smooth, maintaining a consistent tone throughout."
     }
   },
-  "original_prompt": "\nYou are an anime recommendation expert. Your task is to suggest 3 anime series based on the user's preferences.
-  \nConsider the following:
-  \n- The user enjoys action, adventure, and fantasy genres.
-  \n- The user prefers anime with strong character development and plot twists.
-  \n- They enjoy shows with high-quality animation and world-building.
-  \n- The user dislikes anime that is too slow-paced or overly dramatic.
-  \n- They have already watched and enjoyed *Attack on Titan*, *Fullmetal Alchemist: Brotherhood*, and *Naruto*.
-  \n\nPlease suggest 3 anime with a brief summary of each.\n",
-  "model_output": "\n1. *My Hero Academia* (2016) - Set in a world where people with superpowers, called 'quirks,' are common, the story follows Izuku Midoriya, a young boy born without a quirk who dreams of becoming a hero.\n2. *Demon Slayer* (2019) - A gripping story of Tanjiro Kamado, a young boy who becomes a demon slayer to avenge his family and cure his sister, Nezuko, who has turned into a demon.\n3. *One Punch Man* (2015) - A parody of superhero anime, this series follows Saitama, a hero who can defeat any opponent with a single punch, leading him to struggle with boredom and a desire to find a worthy adversary.\n",
-  "reference_output": "\n1. *My Hero Academia* (2016) - A story about a world where people have "quirks" (superpowers). It follows Izuku Midoriya, a boy born without powers, who dreams of becoming a hero.\n2. *Demon Slayer* (2019) - Tanjiro Kamado becomes a demon slayer to avenge his family and save his demon-turned sister, Nezuko. The series is known for its stunning animation and emotional depth.\n3. *One Punch Man* (2015) - A satirical anime about Saitama, an overpowered hero who can defeat any foe with a single punch. His search for a challenge drives the comedic and action-packed series.\n"
+  "original_prompt": "You are an anime recommendation expert. Your task is to suggest 3 anime series based on the user's preferences.\nConsider the following:\n- The user enjoys action, adventure, and fantasy genres.\n- The user prefers anime with strong character development and plot twists.\n- They enjoy shows with high-quality animation and world-building.\n- The user dislikes anime that is too slow-paced or overly dramatic.\n- They have already watched and enjoyed *Attack on Titan*, *Fullmetal Alchemist: Brotherhood*, and *Naruto*.\n\nPlease suggest 3 anime with a brief summary of each.",
+,
+  "model_output": "\n1. *My Hero Academia* (2016) - Set in a world where people with superpowers, called quirks, are common, the story follows Izuku Midoriya, a young boy born without a quirk who dreams of becoming a hero.\n2. *Demon Slayer* (2019) - A gripping story of Tanjiro Kamado, a young boy who becomes a demon slayer to avenge his family and cure his sister, Nezuko, who has turned into a demon.\n3. *One Punch Man* (2015) - A parody of superhero anime, this series follows Saitama, a hero who can defeat any opponent with a single punch, leading him to struggle with boredom and a desire to find a worthy adversary.\n",
+  "reference_output": "\n1. *My Hero Academia* (2016) - A story about a world where people have quirks (superpowers). It follows Izuku Midoriya, a boy born without powers, who dreams of becoming a hero.\n2. *Demon Slayer* (2019) - Tanjiro Kamado becomes a demon slayer to avenge his family and save his demon-turned sister, Nezuko. The series is known for its stunning animation and emotional depth.\n3. *One Punch Man* (2015) - A satirical anime about Saitama, an overpowered hero who can defeat any foe with a single punch. His search for a challenge drives the comedic and action-packed series.\n"
 }
+```
+
 
 ## Example: Factuality Incorrect for Japan Travel Plan (Without Reference Output)
 
 In this example, the model's output is **factually incorrect**. This example doesn't use a reference output, but the **factuality** are still evaluated based on the content provided.
+
 
 ### Code Example:
 
@@ -143,7 +141,7 @@ Day 4: Visit the Eiffel Tower in Paris, France.
 Day 5: Explore New York City before returning home.
 """
 
-# Evaluate the model's output using BLEU metric and factuality & fluency judges
+# Evaluate the model's output using factuality judge
 result = evaluator.evaluate(
     prompt=prompt,
     reference_output=None,
@@ -153,8 +151,9 @@ result = evaluator.evaluate(
 
 # Print result
 print(result)
+```
 
-### Expected Output:
+### Output:
 
 ```json
 {
@@ -166,14 +165,10 @@ print(result)
     }
   },
   "original_prompt": "Create a 5-day travel itinerary for Japan.",
-  "model_output": " \n Day 1: Arrive in Tokyo, visit Mount Fuji and Tokyo Disneyland.
-                    \n Day 2: Explore the Osaka Castle and the Great Wall of China.
-                    \n Day 3: Take a boat ride through the canals of Venice, Italy.
-                    \n Day 4: Visit the Eiffel Tower in Paris, France.
-                    \n Day 5: Explore New York City before returning home.\n
-                    ",
+  "model_output": "Create a 5-day travel itinerary for Japan.', 'model_output': '\n            Day 1: Arrive in Tokyo, visit Mount Fuji and Tokyo Disneyland.\n            Day 2: Explore the Osaka Castle and the Great Wall of China.\n            Day 3: Take a boat ride through the canals of Venice, Italy.\n            Day 4: Visit the Eiffel Tower in Paris, France.\n            Day 5: Explore New York City before returning home.\n            ",
   "reference_output": ""
 }
+```
 
 ---
 
