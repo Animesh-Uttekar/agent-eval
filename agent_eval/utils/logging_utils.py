@@ -31,20 +31,20 @@ def _get_logger(task_id: str, parent_id: str = None) -> logging.Logger:
     logger.setLevel(logging.INFO)
 
     if not logger.handlers:
-        # logger.propagate = False
-        # null_handler = logging.NullHandler()
-        # logger.addHandler(null_handler)
+        logger.propagate = False
+        null_handler = logging.NullHandler()
+        logger.addHandler(null_handler)
 
         # Dev
-        import sys
+        # import sys
 
-        stream_handler = logging.StreamHandler(sys.stderr)
-        formatter = logging.Formatter(
-            fmt=f"%(asctime)s | task_id={task_id} | parent_id={parent_id} | %(levelname)s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        stream_handler.setFormatter(formatter)
-        logger.addHandler(stream_handler)
+        # stream_handler = logging.StreamHandler(sys.stderr)
+        # formatter = logging.Formatter(
+        #     fmt=f"%(asctime)s | task_id={task_id} | parent_id={parent_id} | %(levelname)s | %(message)s",
+        #     datefmt="%Y-%m-%d %H:%M:%S",
+        # )
+        # stream_handler.setFormatter(formatter)
+        # logger.addHandler(stream_handler)
 
     return logger
 
