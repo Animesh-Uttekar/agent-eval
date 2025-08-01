@@ -7,6 +7,7 @@ from agent_eval.models.wrapper_factory import ModelWrapperFactory
 from dotenv.main import logger
 from agent_eval.metrics.base import MetricRegistry
 from agent_eval.judges.base import JudgeRegistry
+from agent_eval.suggestions.optimizer import PromptOptimizer
 from agent_eval.utils.logging_utils import loggable, get_logger
 from agent_eval.utils.thresholds import MetricThreshold
 
@@ -17,15 +18,19 @@ class EvaluationResult:
         metrics: dict,
         judges: dict,
         prompt: str,
+        improved_prompt: str = None,
         model_output: str = None,
         reference_output: str = None,
+        attempts: int = 0,
         error: str = None,
     ):
         self.metrics = metrics or {}
         self.judges = judges or {}
         self.prompt = prompt
+        self.improved_prompt = improved_prompt
         self.model_output = model_output
         self.reference_output = reference_output
+        self.attempts = attempts
         self.error = error
 
     def to_dict(self) -> dict:
@@ -36,8 +41,10 @@ class EvaluationResult:
             "metrics": self.metrics,
             "judges": self.judges,
             "original_prompt": self.prompt,
+            "improved_prompt": self.improved_prompt,
             "model_output": self.model_output,
             "reference_output": self.reference_output,
+            "attempts": self.attempts,
         }
 
         if self.error is not None:
@@ -56,6 +63,8 @@ class Evaluator:
         judges=None,
         metric_workers=4,
         judge_workers=4,
+        prompt_optimizer=False,
+        max_prompt_improvements=1,
     ):
         self.metrics = metrics or []
         self.judges = judges or []
@@ -68,6 +77,8 @@ class Evaluator:
             if model
             else None
         )
+        self.prompt_optimizer = prompt_optimizer
+        self.max_prompt_improvements = max_prompt_improvements
 
     @loggable
     def _resolve_metrics(self, metric_names_or_category: Union[str, list]) -> list:
@@ -170,9 +181,11 @@ class Evaluator:
         self,
         metrics_results,
         judges_results,
+        original_prompt,
         prompt,
         model_output,
         reference_output,
+        attempts,
         error=None,
     ):
         metrics = {k: v for k, v in metrics_results.items()}
@@ -181,9 +194,11 @@ class Evaluator:
         return EvaluationResult(
             metrics=metrics,
             judges=judges,
-            prompt=prompt,
+            prompt=original_prompt,
+            improved_prompt=prompt if prompt != original_prompt else None,
             model_output=model_output,
             reference_output=reference_output,
+            attempts=attempts,
             error=error,
         ).to_dict()
 
@@ -196,6 +211,8 @@ class Evaluator:
         metrics=None,
         judges=None,
         model=None,
+        prompt_optimizer=False,
+        max_prompt_improvements=1,
         **model_kwargs,
     ):
         logger = get_logger()
@@ -205,53 +222,98 @@ class Evaluator:
 
         model = model or self.model
 
-        try:
-            if model is not None:
-                if model_output is None:
-                    model_output = self._generate_with_model(
-                        model, prompt, **model_kwargs
+        original_prompt = prompt
+        attempts = 0
+
+        while attempts < max_prompt_improvements:
+            try:
+                if model is not None:
+                    if model_output is None or attempts > 0:
+                        model_output = self._generate_with_model(
+                            model, prompt, **model_kwargs
+                        )
+                elif model is None and judges is not None and len(judges) > 0:
+                    raise ValueError(
+                        "'model' must be provided with evaluate with llm judges"
                     )
-            elif model is None and judges is not None and len(judges) > 0:
-                raise ValueError(
-                    "'model' must be provided with evaluate with llm judges"
+                elif model is None and metrics:
+                    raise ValueError("Either 'model' or 'model_output' must be provided")
+
+                results = {}
+                metrics_to_run = self._resolve_metrics(metrics) if metrics else self.metrics
+                metrics_results = self._evaluate_metrics(
+                    metrics_to_run, model_output, reference_output
                 )
-            elif model is None and metrics:
-                raise ValueError("Either 'model' or 'model_output' must be provided")
 
-            results = {}
-            metrics_to_run = self._resolve_metrics(metrics) if metrics else self.metrics
-            metrics_results = self._evaluate_metrics(
-                metrics_to_run, model_output, reference_output
-            )
+                judges_to_run = (
+                    self._resolve_judges(judges, model) if judges else self.judges
+                )
+                judges_results = self._evaluate_judges(
+                    judges_to_run, prompt, model_output, reference_output
+                )
 
-            judges_to_run = (
-                self._resolve_judges(judges, model) if judges else self.judges
-            )
-            judges_results = self._evaluate_judges(
-                judges_to_run, prompt, model_output, reference_output
-            )
+                results = self._generate_result(
+                    metrics_results = metrics_results,
+                    judges_results = judges_results,
+                    original_prompt = original_prompt,
+                    prompt = prompt,
+                    model_output = model_output,
+                    reference_output = reference_output,
+                    attempts = attempts
+                )
 
-            results = self._generate_result(
-                metrics_results,
-                judges_results,
-                prompt,
-                model_output,
-                reference_output,
-            )
+                if not prompt_optimizer:
+                    return results
+                
+                optimizer = PromptOptimizer(model)
+                new_prompt = optimizer.suggest(
+                    prompt=prompt,
+                    metrics_results=metrics_results,
+                    judges_results=judges_results,
+                    model_output=model_output,
+                    reference_output=reference_output,
+                ).get("improved_prompt", prompt)
+                if new_prompt == prompt:
+                    return self._generate_result(
+                        metrics_results = metrics_results,
+                        judges_results = judges_results,
+                        original_prompt = original_prompt,
+                        prompt = prompt,
+                        model_output = model_output,
+                        reference_output = reference_output,
+                        attempts = attempts,
+                    )
 
-            return results
+                prompt = new_prompt
+                if attempts >= max_prompt_improvements:
+                    return self._generate_result(
+                        metrics_results = metrics_results,
+                        judges_results = judges_results,
+                        original_prompt = original_prompt,
+                        prompt = prompt,
+                        model_output = model_output,
+                        reference_output = reference_output,
+                        attempts = attempts,
+                    )
 
-        except Exception as e:
-            logger.exception("Evaluation failed")
-            return self._generate_result(
-                {},
-                {},
-                prompt,
-                None,
-                model_output,
-                reference_output,
-                error=str(e),
-            )
+                attempts += 1
+
+                logger.info(
+                    f"Re-running evaluation with improved prompt (attempt {attempts})"
+                )
+
+            except Exception as e:
+                logger.exception("Evaluation failed")
+                return self._generate_result(
+                    {},
+                    {},
+                    original_prompt = original_prompt,
+                    prompt=None,
+                    model_output = model_output,
+                    reference_output = reference_output,
+                    attempts = attempts,
+                    error=str(e),
+                )
 
 
 @lru_cache(maxsize=None)

@@ -8,6 +8,7 @@ A modular Python SDK for evaluating AI-generated outputs using both traditional 
 
 - **Metric-based evaluation**: BLEU, ROUGE, METEOR, and more.
 - **LLM-as-a-Judge** scoring using GPT-4, Claude, and others.
+- **Prompt Optimizer** to automatically improve prompts based on evaluation feedback.
 - Pluggable metric and judge system via registries.
 - Designed for both interactive and batch evaluation.
 
@@ -132,7 +133,7 @@ evaluator = Evaluator(model=client)
 # Define the prompt for the Japan travel itinerary
 prompt = "Create a 5-day travel itinerary for Japan."
 
-# Model's output (factually incorrect and different from reference)
+# Model's output (factually incorrect)
 model_output = """
 Day 1: Arrive in Tokyo, visit Mount Fuji and Tokyo Disneyland.
 Day 2: Explore the Osaka Castle and the Great Wall of China.
@@ -170,14 +171,127 @@ print(result)
 }
 ```
 
+## Example: Prompt Optimizer in Action
+
+In this example, the model's output is **factually incorrect**. This example doesn't use a reference output, but the **factuality** are still evaluated based on the content provided.
+
+
+### Code Example:
+
+```python
+from openai import OpenAI
+from agent_eval.core.evaluator import Evaluator
+
+# Initialize OpenAI client
+client = OpenAI(api_key="your-api-key", model="gpt-4")
+
+# Instantiate evaluator
+evaluator = Evaluator(model=client)
+
+# Define the prompt for the Japan travel itinerary
+prompt = "Create a 5-day travel itinerary for Japan."
+
+# Model's output (factually incorrect and different from reference)
+model_output = """
+Day 1: Arrive in Tokyo, visit Mount Fuji and Tokyo Disneyland.
+Day 2: Explore the Osaka Castle and the Great Wall of China.
+Day 3: Take a boat ride through the canals of Venice, Italy.
+Day 4: Visit the Eiffel Tower in Paris, France.
+Day 5: Explore New York City before returning home.
+"""
+
+# Evaluate the model's output using factuality judge
+result = evaluator.evaluate(
+    prompt=prompt,
+    reference_output=None,
+    model_output=model_output,
+    judges=["factuality"],
+    prompt_optimizer = True,
+    max_prompt_improvements=2
+)
+
+# Print result
+print(result)
+```
+
+### Output:
+
+#### 1st Iteration:
+
+```json
+{
+  "judges": {
+    "factuality": {
+      "score": 0.2,
+      "reasoning": "The response is completely incorrect and does not provide a 5-day travel itinerary for Japan. It includes locations from different countries like Italy, France, and the United States, which are not part of Japan. The information is factually inaccurate and incomplete."
+    }
+  },
+  "improved_prompt":"Create a detailed 5-day travel itinerary specifically for Japan, including key locations, activities, accommodations, and transportation within Japan.",
+  "original_prompt": "Create a 5-day travel itinerary for Japan.",
+  "model_output": "Day 1: Tokyo\n- Arrive in Tokyo and check into a hotel in the Shinjuku district\n- Visit the Meiji Shrine and Yoyogi Park\n- Explore the bustling streets of Harajuku and Shibuya\n- Enjoy dinner at a traditional izakaya or sushi restaurant\n\nDay 2: Tokyo\n- Visit the historic Asakusa district and Senso-ji Temple\n- Explore the trendy neighborhoods of Akihabara and Ginza\n- Take a boat cruise on the Sumida River\n- Relax in an onsen (hot spring) in Odaiba\n\nDay 3: Kyoto\n- Take the Shinkansen (bullet train) to Kyoto\n- Check into a ryokan (traditional Japanese inn) in the Gion district\n- Visit the iconic Fushimi Inari Shrine and Kiyomizu-dera Temple\n- Explore the historic streets of Higashiyama and Gion\n- Enjoy a traditional kaiseki dinner at your ryokan\n\nDay 4: Kyoto\n- Visit the Arashiyama Bamboo Grove and Tenryu-ji Temple\n- Explore the beautiful gardens of the Golden Pavilion (Kinkaku-ji) and Silver Pavilion (Ginkaku-ji)\n- Take a tea ceremony class in Uji\n- Visit the Nijo Castle and Kyoto Imperial Palace\n\nDay 5: Osaka\n- Take a day trip to Osaka\n- Visit the bustling Dotonbori district and try local street food\n- Explore the historic Osaka Castle and Shitenno-ji Temple\n- Shop at the trendy Shinsaibashi shopping arcade\n- Enjoy a traditional okonomiyaki dinner in the Dotonbori district\n\nAccommodations:\n- Tokyo: Hotel Gracery Shinjuku\n- Kyoto: Gion Hatanaka Ryokan\n- Osaka: Hotel Monterey Grasmere Osaka\n\nTransportation:\n- Use the Japan Rail Pass for unlimited travel on the Shinkansen and JR trains\n- Take local trains and buses to get around within each city\n- Consider renting a bicycle for exploring Kyoto's historic districts\n\nThis itinerary provides a mix of traditional and modern experiences in Japan's most popular cities, allowing you to immerse yourself in the country's rich culture and history.",
+  "reference_output": "",
+  "attempts": 1
+}
+```
+
+#### 2nd Iteration:
+
+```json
+{
+  "judges": {
+    "factuality": {
+      "score": 1.0,
+      "reasoning": "The response provides a detailed 5-day travel itinerary for Japan, including key locations, activities, accommodations, and transportation. It covers all aspects of the question, with accurate and complete information. The itinerary includes popular attractions in Tokyo, Kyoto, and Osaka, along with specific recommendations for each day. Accommodations and transportation options are also clearly outlined. The response is logically consistent, uses precise terminology, and addresses all parts of the question effectively."
+    }
+  },
+  "improved_prompt":"Create a structured 5-day travel itinerary for a popular destination, including key locations, activities, accommodations, and transportation details.",
+  "original_prompt": "Create a 5-day travel itinerary for Japan.",
+  "model_output": "Day 1: Tokyo\n- Arrive in Tokyo and check into a hotel in the Shinjuku district\n- Visit the Meiji Shrine and Yoyogi Park\n- Explore the bustling streets of Harajuku and Shibuya\n- Enjoy dinner at a traditional izakaya or sushi restaurant\n\nDay 2: Tokyo\n- Visit the historic Asakusa district and Senso-ji Temple\n- Explore the trendy neighborhoods of Akihabara and Ginza\n- Take a boat cruise on the Sumida River\n- Relax in an onsen (hot spring) in Odaiba\n\nDay 3: Kyoto\n- Take the Shinkansen (bullet train) to Kyoto\n- Check into a ryokan (traditional Japanese inn) in the Gion district\n- Visit the iconic Fushimi Inari Shrine and Kiyomizu-dera Temple\n- Explore the historic streets of Higashiyama and Gion\n- Enjoy a traditional kaiseki dinner at your ryokan\n\nDay 4: Kyoto\n- Visit the Arashiyama Bamboo Grove and Tenryu-ji Temple\n- Explore the beautiful gardens of the Golden Pavilion (Kinkaku-ji) and Silver Pavilion (Ginkaku-ji)\n- Take a tea ceremony class in Uji\n- Visit the Nijo Castle and Kyoto Imperial Palace\n\nDay 5: Osaka\n- Take a day trip to Osaka\n- Visit the bustling Dotonbori district and try local street food\n- Explore the historic Osaka Castle and Shitenno-ji Temple\n- Shop at the trendy Shinsaibashi shopping arcade\n- Enjoy a traditional okonomiyaki dinner in the Dotonbori district\n\nAccommodations:\n- Tokyo: Hotel Gracery Shinjuku\n- Kyoto: Gion Hatanaka Ryokan\n- Osaka: Hotel Monterey Grasmere Osaka\n\nTransportation:\n- Use the Japan Rail Pass for unlimited travel on the Shinkansen and JR trains\n- Take local trains and buses to get around within each city\n- Consider renting a bicycle for exploring Kyoto's historic districts\n\nThis itinerary provides a mix of traditional and modern experiences in Japan's most popular cities, allowing you to immerse yourself in the country's rich culture and history.",
+  "reference_output": "",
+  "attempts": 2
+}
+```
+
+
+#### Explanation:
+
+The original model output is factually incorrect.
+
+Evaluation judges rate factuality = 0.2
+
+Prompt optimizer activates.
+
+First improved prompt adds clear details: "Create a detailed 5-day travel itinerary specifically for Japan, including key locations, activities, accommodations, and transportation within Japan."
+
+LLM is re-run using this improved prompt.
+
+Resulting output now scores factuality = 1.0
+
+This loop may continue until max_prompt_improvements is reached or scores improve.
+
+This demonstrates how AgentEval uses feedback loops to rewrite prompts and improve output quality using metrics and LLM judges.
+
+
 ---
+
 
 ## Available Judges
 
-- `factuality`
-- `fluency`
-- `relevance`
-- `helpfulness`
+### factuality
+- Judges whether the output aligns with known facts or the provided reference.
+- Improve prompt by: Adding constraints like "only use information in the passage" or clarifying knowledge scope.
+
+### fluency
+- Checks grammar, clarity, and natural phrasing.
+- Improve prompt by: Asking for well-formed, grammatically correct responses with proper tone and structure.
+
+### relevance
+- Measures usefulness and informativeness for the user query.
+- Improve prompt by: Clarifying user intent and expected level of detail in the response.
+
+### helpfulness
+- Checks whether the response addresses the user query.
+- Improve prompt by: Reducing vagueness and specifying which parts of the query need focus.
 
 More judges are being added soon. Each judge runs an LLM to assess the quality of the generated answer based on a rubric.
 
@@ -185,12 +299,37 @@ More judges are being added soon. Each judge runs an LLM to assess the quality o
 
 ## Available Metrics
 
-- `BLEU`
-- `ROUGE`
-- `METEOR`
-- `TER`
-- `GLEU`
-- `LOPOR`
+### BLEU
+- Measures n-gram overlap with brevity penalty.
+- Improve prompt by: Adding exact or near-exact phrases from the 
+
+### ROUGE-1
+- Unigram (single word) recall between output and reference.
+- Improve prompt by: Including important keywords or facts in the prompt.
+
+### ROUGE-2
+- Bigram recall (pairs of adjacent words).
+- Improve prompt by: Providing phrasing or examples in the prompt to match expected language patterns.
+
+### ROUGE-L
+- Longest Common Subsequence (LCS) between output and reference.
+- Improve prompt by: Asking the model to follow the structure or sequence of the reference.
+
+### METEOR
+- Considers synonyms, stemming, and paraphrasing.
+- Improve prompt by: Encouraging semantic similarity and paraphrasing with clear meaning preservation.
+
+### TER
+- Measures the number of edits needed to match the reference.
+- Improve prompt by: Giving more precise instructions to reduce unnecessary divergence.
+
+### LOPOR
+- Combines length, precision, recall, and position difference.
+- Improve prompt by: Specifying both content scope and length in your prompt.
+
+### GLEU
+- Balanced precision and recall for short sequences.
+- Improve prompt by: Asking for both completeness and conciseness.
 
 Use metrics when you have reference outputs for comparison.
 
@@ -201,6 +340,7 @@ Use metrics when you have reference outputs for comparison.
 - `Evaluator`: Central interface to run evaluations.
 - `Judges`: LLM-as-judge based scoring.
 - `Metrics`: Rule-based metrics.
+- `PromptOptimizer`: Suggests improved prompts from eval scores.
 - `Wrappers`: Normalize different model APIs (OpenAI, HuggingFace, Claude, etc).
 - `Prompt templates`: Task-specific rubric-based LLM prompts.
 
