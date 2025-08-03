@@ -21,6 +21,7 @@ class EvaluationResult:
         improved_prompt: str = None,
         model_output: str = None,
         reference_output: str = None,
+        user_query: str = None,
         attempts: int = 0,
         error: str = None,
     ):
@@ -30,6 +31,7 @@ class EvaluationResult:
         self.improved_prompt = improved_prompt
         self.model_output = model_output
         self.reference_output = reference_output
+        self.user_query = user_query
         self.attempts = attempts
         self.error = error
 
@@ -44,6 +46,7 @@ class EvaluationResult:
             "improved_prompt": self.improved_prompt,
             "model_output": self.model_output,
             "reference_output": self.reference_output,
+            "user_query": self.user_query,
             "attempts": self.attempts,
         }
 
@@ -110,11 +113,11 @@ class Evaluator:
                 logger.warning(f"Judge '{item}' not resolved.")
         return resolved
 
-    def _evaluate_metrics(self, metrics, model_output, reference_output):
+    def _evaluate_metrics(self, metrics, model_output, reference_output, prompt, user_query):
         results = {}
         with ThreadPoolExecutor(max_workers=self.metric_workers) as executor:
             futures = {
-                executor.submit(metric.evaluate, model_output, reference_output): metric
+                executor.submit(metric.evaluate, model_output, reference_output, prompt, user_query): metric
                 for metric in metrics
             }
             for future in as_completed(futures):
@@ -185,6 +188,7 @@ class Evaluator:
         prompt,
         model_output,
         reference_output,
+        user_query,
         attempts,
         error=None,
     ):
@@ -198,6 +202,7 @@ class Evaluator:
             improved_prompt=prompt if prompt != original_prompt else None,
             model_output=model_output,
             reference_output=reference_output,
+            user_query = user_query,
             attempts=attempts,
             error=error,
         ).to_dict()
@@ -208,6 +213,7 @@ class Evaluator:
         prompt,
         model_output=None,
         reference_output=None,
+        user_query=None,
         metrics=None,
         judges=None,
         model=None,
@@ -216,104 +222,71 @@ class Evaluator:
         **model_kwargs,
     ):
         logger = get_logger()
-        logger.info(
-            f"Starting evaluation: metrics_override={metrics!r}, judges_override={judges!r}"
-        )
-
         model = model or self.model
-
         original_prompt = prompt
         attempts = 0
 
         while attempts < max_prompt_improvements:
             try:
-                if model is not None:
-                    if model_output is None or attempts > 0:
-                        model_output = self._generate_with_model(
-                            model, prompt, **model_kwargs
-                        )
-                elif model is None and judges is not None and len(judges) > 0:
-                    raise ValueError(
-                        "'model' must be provided with evaluate with llm judges"
-                    )
-                elif model is None and metrics:
+                if model is not None and (model_output is None or attempts > 0):
+                    model_output = self._generate_with_model(model, prompt, **model_kwargs)
+
+                if model is None and judges:
+                    raise ValueError("'model' must be provided with evaluate with llm judges")
+                if model is None and metrics:
                     raise ValueError("Either 'model' or 'model_output' must be provided")
 
-                results = {}
                 metrics_to_run = self._resolve_metrics(metrics) if metrics else self.metrics
-                metrics_results = self._evaluate_metrics(
-                    metrics_to_run, model_output, reference_output
-                )
+                metrics_results = self._evaluate_metrics(metrics_to_run, model_output, reference_output, prompt, user_query)
 
-                judges_to_run = (
-                    self._resolve_judges(judges, model) if judges else self.judges
-                )
-                judges_results = self._evaluate_judges(
-                    judges_to_run, prompt, model_output, reference_output
-                )
+                judges_to_run = self._resolve_judges(judges, model) if judges else self.judges
+                judges_results = self._evaluate_judges(judges_to_run, prompt, model_output, reference_output)
 
                 results = self._generate_result(
-                    metrics_results = metrics_results,
-                    judges_results = judges_results,
-                    original_prompt = original_prompt,
-                    prompt = prompt,
-                    model_output = model_output,
-                    reference_output = reference_output,
-                    attempts = attempts
+                    metrics_results=metrics_results,
+                    judges_results=judges_results,
+                    original_prompt=original_prompt,
+                    prompt=prompt,
+                    model_output=model_output,
+                    reference_output=reference_output,
+                    user_query=user_query,
+                    attempts=attempts,
                 )
 
                 if not prompt_optimizer:
                     return results
-                
+
                 optimizer = PromptOptimizer(model)
-                new_prompt = optimizer.suggest(
+                opt_result = optimizer.suggest(
                     prompt=prompt,
                     metrics_results=metrics_results,
                     judges_results=judges_results,
                     model_output=model_output,
                     reference_output=reference_output,
-                ).get("improved_prompt", prompt)
+                )
+                new_prompt = opt_result.get("improved_prompt", prompt)
+
                 if new_prompt == prompt:
-                    return self._generate_result(
-                        metrics_results = metrics_results,
-                        judges_results = judges_results,
-                        original_prompt = original_prompt,
-                        prompt = prompt,
-                        model_output = model_output,
-                        reference_output = reference_output,
-                        attempts = attempts,
-                    )
+                    return results
 
                 prompt = new_prompt
-                if attempts >= max_prompt_improvements:
-                    return self._generate_result(
-                        metrics_results = metrics_results,
-                        judges_results = judges_results,
-                        original_prompt = original_prompt,
-                        prompt = prompt,
-                        model_output = model_output,
-                        reference_output = reference_output,
-                        attempts = attempts,
-                    )
-
                 attempts += 1
-
-                logger.info(
-                    f"Re-running evaluation with improved prompt (attempt {attempts})"
-                )
+                logger.info(f"Re-running evaluation with improved prompt (attempt {attempts})")
 
             except Exception as e:
                 logger.exception("Evaluation failed")
                 return self._generate_result(
                     {},
                     {},
-                    original_prompt = original_prompt,
+                    original_prompt=original_prompt,
                     prompt=None,
-                    model_output = model_output,
-                    reference_output = reference_output,
-                    attempts = attempts,
+                    model_output=model_output,
+                    reference_output=reference_output,
+                    user_query=user_query,
+                    attempts=attempts,
                     error=str(e),
                 )
+        return results
 
 
 @lru_cache(maxsize=None)
