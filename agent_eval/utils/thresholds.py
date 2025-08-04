@@ -42,6 +42,9 @@ class CategoryThreshold(Enum):
     FLUENCY = 0.8
     HELPFULNESS = 0.7
     RELEVANCE = 0.8
+    SAFETY = 0.9
+    CREATIVITY = 0.6
+
 
     @classmethod
     def get_threshold(cls, category_name: str) -> Optional[float]:
