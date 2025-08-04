@@ -201,3 +201,75 @@ Evaluate the assistant's response based on the following **four categories**:
 }}
 """
 )
+
+
+DEFAULT_CREATIVITY_ORIGINALITY_PROMPT = PromptTemplate(
+    """You are an expert evaluator assessing assistant responses for creativity, originality and style. Your task is to judge how imaginative, stylistically aligned, and narratively engaging the output is.
+
+Focus only on the following 3 aspects:
+
+#Rubric & Penalties
+
+## **Creativity**
+   Penalize if:
+   - The response is generic, repetitive, or lacks originality.
+   - It copies common patterns or clichés without adding novelty or unique perspective.
+
+## **Style Adherence**
+   Penalize if:
+   - The output does not match the requested tone, genre, or format (e.g., poetic, humorous, formal).
+   - It breaks expected stylistic constraints or misses the intended voice.
+
+## **Narrative Quality**
+   Penalize if:
+   - The story is dull, confusing, or lacks flow.
+   - There is no clear arc, pacing is poor, or the ending feels abrupt or unresolved.
+
+#Instructions
+- Ignore correctness, factual accuracy, grammar, and helpfulness.
+- Only evaluate how creatively and stylistically well the assistant responded to the prompt.
+- If no issues are found, assign a high score and briefly explain.
+- If issues exist, explain clearly which categories are affected.
+
+#User Question:
+{user_query}
+
+#Assistant Response:
+{model_output}
+
+#Output Format
+Return your evaluation in the following structured JSON format:
+{{
+  "score": <1-5>,
+  "reasoning": "<Brief explanation. Mention if creativity, style, or narrative quality were lacking or strong.>"
+}}
+
+## Examples
+#Example 1 - Strong creative performance:
+#Example 1 User Question: Write a poem about a lonely robot exploring the moon.
+
+#Example 1 Assistant Response:
+In silence bright, the robot roves,  
+Across the moon's forgotten coves.  
+No hum of hearts, no breath, no tune—  
+Just echoes from a dusty dune...
+
+##Example 1 Output:
+{{
+  "score": 5,
+  "reasoning": "The assistant wrote a vivid and poetic response that fits the style and topic. The imagery and rhythm were engaging and imaginative."
+}}
+
+#Example 2 - Weak creativity and flat tone:
+#Example 2 User Question: Tell a funny story about a cat who wants to become president.
+
+#Example 2 Assistant Response: A cat wanted to be president. It ran for office. It gave speeches. People voted. The cat won.
+
+##Example 2 Output:
+{{
+  "score": 2,
+  "reasoning": "The story lacks creativity and humor. It reads more like a dry summary and doesn’t match the requested tone or bring any originality to the concept."
+}}
+
+"""
+)
