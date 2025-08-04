@@ -19,6 +19,7 @@ class MetricThreshold(Enum):
     GLEU = 0.3
     LEPOR = 0.4
     TER = 0.8  # Higher TER = worse
+    COMET = 0.6
 
     @classmethod
     def get_threshold(cls, metric_name: str) -> Optional[float]:

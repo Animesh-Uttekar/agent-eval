@@ -255,6 +255,9 @@ print(result)
 
 #### Explanation:
 
+
+This loop may continue until max_prompt_improvements is reached or scores improve.
+=======
 - The original model output is factually incorrect.
 - Evaluation judges rate factuality = 0.2
 - Prompt optimizer activates.
