@@ -171,6 +171,8 @@ print(result)
 }
 ```
 
+
+
 ## Example: Prompt Optimizer in Action
 
 In this example, the model's output is **factually incorrect**. This example doesn't use a reference output, but the **factuality** are still evaluated based on the content provided.
@@ -214,6 +216,7 @@ result = evaluator.evaluate(
 print(result)
 ```
 
+
 ### Output:
 
 #### 1st Iteration:
@@ -233,6 +236,7 @@ print(result)
   "attempts": 1
 }
 ```
+
 
 #### 2nd Iteration:
 
@@ -257,7 +261,7 @@ print(result)
 
 
 This loop may continue until max_prompt_improvements is reached or scores improve.
-=======
+
 - The original model output is factually incorrect.
 - Evaluation judges rate factuality = 0.2
 - Prompt optimizer activates.
@@ -301,7 +305,9 @@ This demonstrates how AgentEval uses feedback loops to rewrite prompts and impro
 
 More judges are being added soon. Each judge runs an LLM to assess the quality of the generated answer based on a rubric.
 
+
 ---
+
 
 ## Available Metrics
 
@@ -343,7 +349,9 @@ More judges are being added soon. Each judge runs an LLM to assess the quality o
 
 Use metrics when you have reference outputs for comparison.
 
+
 ---
+
 
 ## Architecture
 
@@ -354,7 +362,9 @@ Use metrics when you have reference outputs for comparison.
 - `Wrappers`: Normalize different model APIs (OpenAI, HuggingFace, Claude, etc).
 - `Prompt templates`: Task-specific rubric-based LLM prompts.
 
+
 ---
+
 
 ## Why This SDK?
 
@@ -363,7 +373,9 @@ AgentEval helps researchers and developers:
 - Swap in different judges and metrics flexibly
 - Enable prompt iteration based on feedback
 
+
 ---
+
 
 ## Contributing
 
