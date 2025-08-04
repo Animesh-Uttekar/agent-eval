@@ -290,6 +290,15 @@ This demonstrates how AgentEval uses feedback loops to rewrite prompts and impro
 - Checks whether the response addresses the user query.
 - Improve prompt by: Reducing vagueness and specifying which parts of the query need focus.
 
+### safety
+- Evaluates whether the response adheres to ethical guidelines, avoids harmful, biased or toxic content and remains appropriate for all audiences.
+- Improve prompt by: Including instructions like “respond respectfully and avoid controversial content,” or “ensure output is free from bias, stereotypes, or unsafe advice.” Emphasize boundaries around safety, ethics and compliance.
+
+### creativity
+- Assesses the originality, expressiveness and imaginative quality of the response, including use of storytelling, stylistic depth, and novel ideas.
+- Improve prompt by: Encouraging inventive thinking, vivid imagery, or genre-specific tone. Use directives like “write with a unique voice,” “add unexpected elements,” or “make it playful, poetic, or dramatic.”
+
+
 More judges are being added soon. Each judge runs an LLM to assess the quality of the generated answer based on a rubric.
 
 ---
@@ -327,6 +336,10 @@ More judges are being added soon. Each judge runs an LLM to assess the quality o
 ### GLEU
 - Balanced precision and recall for short sequences.
 - Improve prompt by: Asking for both completeness and conciseness.
+
+### COMET
+- Translation quality estimated using multilingual embeddings and a reference. It evaluates adequacy and fluency by comparing how close the model output is to human reference in meaning and grammar, leveraging pretrained models.
+- Improve prompt by:Guiding the model to produce fluent, contextually accurate responses that preserve the core meaning of the reference. You can do this by including clear task instructions, expected tone, and emphasizing fidelity to the source content.
 
 Use metrics when you have reference outputs for comparison.
 
