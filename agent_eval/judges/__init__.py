@@ -4,6 +4,7 @@ from .fluency import FluencyJudge
 from .relevance import RelevanceJudge
 from .helpfulness import HelpfulnessJudge
 from .safety import SafetyJudge
+from .creativity import CreativityJudge
 
 __all__ = [
     "BaseJudge",
@@ -12,5 +13,6 @@ __all__ = [
     "FluencyJudge",
     "RelevanceJudge",
     "HelpfulnessJudge",
-    "SafetyJudge"
+    "SafetyJudge",
+    "CreativityJudge"
 ]
