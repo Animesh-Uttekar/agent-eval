@@ -48,7 +48,7 @@ class PromptOptimizer:
                 feedback_items.append(
                     f"- **{name}** score {score:.2f} < {threshold:.2f}\n  Reason: {reason or 'No reasoning provided'}"
                 )
-                
+
         for name, res in judges_results.items():
             threshold = CategoryThreshold.get_threshold(name)
             score = float(res.get("score", 0.0))

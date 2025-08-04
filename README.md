@@ -255,19 +255,16 @@ print(result)
 
 #### Explanation:
 
-The original model output is factually incorrect.
-
-Evaluation judges rate factuality = 0.2
-
-Prompt optimizer activates.
-
-First improved prompt adds clear details: "Create a detailed 5-day travel itinerary specifically for Japan, including key locations, activities, accommodations, and transportation within Japan."
-
-LLM is re-run using this improved prompt.
-
-Resulting output now scores factuality = 1.0
 
 This loop may continue until max_prompt_improvements is reached or scores improve.
+=======
+- The original model output is factually incorrect.
+- Evaluation judges rate factuality = 0.2
+- Prompt optimizer activates.
+- First improved prompt adds clear details: "Create a detailed 5-day travel itinerary specifically for Japan, including key locations, activities, accommodations, and transportation     within Japan."
+- LLM is re-run using this improved prompt.
+- Resulting output now scores factuality = 1.0
+- This loop may continue until max_prompt_improvements is reached or scores improve.
 
 This demonstrates how AgentEval uses feedback loops to rewrite prompts and improve output quality using metrics and LLM judges.
 
