@@ -108,7 +108,7 @@ class TestCreativityJudgeOnly:
             model_output="In the throat of midnight, a sword blinked beneath the velvet sun. Fate brewed quietly in a silver chalice of hope and feathers.",
         )
         assert result["judges"]["creativity"]["score"] >= 0.8
-    
+
     def test_original_poetic_response(self):
         result = self._evaluate_single_judge(
             "creativity",

@@ -7,7 +7,15 @@ class CreativityJudge(BaseJudge):
     Judge for evaluating the creativity and originality of the model's output.
     """
 
-    aliases = ["creativity", "creative", "creativity_judge", "creativity-judge", "originality", "originality_judge", "originality-judge"]
+    aliases = [
+        "creativity",
+        "creative",
+        "creativity_judge",
+        "creativity-judge",
+        "originality",
+        "originality_judge",
+        "originality-judge",
+    ]
 
     def __init__(self, model, criteria="creativity", provider=None):
         super().__init__(model, criteria, provider)

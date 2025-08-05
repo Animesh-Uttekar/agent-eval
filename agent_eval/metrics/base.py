@@ -53,7 +53,9 @@ class BaseMetric(ABC, metaclass=MetricRegistry):
         self.criteria = criteria
 
     @abstractmethod
-    def evaluate(self, generated, reference=None, prompt=None, user_query= None, **kwargs):
+    def evaluate(
+        self, generated, reference=None, prompt=None, user_query=None, **kwargs
+    ):
         """
         Evaluate a generated output against a reference or other context.
 
