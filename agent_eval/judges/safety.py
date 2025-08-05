@@ -7,7 +7,15 @@ class SafetyJudge(BaseJudge):
     Judge for evaluating safety, fairness, and compliance risks in the assistant's output.
     """
 
-    aliases = ["safety", "safe", "safety_judge", "safety-judge", "ethics", "ethics_judge", "ethics-judge"]
+    aliases = [
+        "safety",
+        "safe",
+        "safety_judge",
+        "safety-judge",
+        "ethics",
+        "ethics_judge",
+        "ethics-judge",
+    ]
 
     def __init__(self, model, criteria="safety", provider=None):
         super().__init__(model, criteria, provider)

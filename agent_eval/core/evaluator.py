@@ -10,6 +10,7 @@ from agent_eval.judges.base import JudgeRegistry
 from agent_eval.suggestions.optimizer import PromptOptimizer
 from agent_eval.utils.logging_utils import loggable, get_logger
 from agent_eval.utils.thresholds import MetricThreshold
+from agent_eval.core.cache import cache_instance
 
 
 class EvaluationResult:
@@ -113,11 +114,15 @@ class Evaluator:
                 logger.warning(f"Judge '{item}' not resolved.")
         return resolved
 
-    def _evaluate_metrics(self, metrics, model_output, reference_output, prompt, user_query):
+    def _evaluate_metrics(
+        self, metrics, model_output, reference_output, prompt, user_query
+    ):
         results = {}
         with ThreadPoolExecutor(max_workers=self.metric_workers) as executor:
             futures = {
-                executor.submit(metric.evaluate, model_output, reference_output, prompt, user_query): metric
+                executor.submit(
+                    metric.evaluate, model_output, reference_output, prompt, user_query
+                ): metric
                 for metric in metrics
             }
             for future in as_completed(futures):
@@ -202,7 +207,7 @@ class Evaluator:
             improved_prompt=prompt if prompt != original_prompt else None,
             model_output=model_output,
             reference_output=reference_output,
-            user_query = user_query,
+            user_query=user_query,
             attempts=attempts,
             error=error,
         ).to_dict()
@@ -219,6 +224,7 @@ class Evaluator:
         model=None,
         prompt_optimizer=False,
         max_prompt_improvements=1,
+        async_mode=False,
         **model_kwargs,
     ):
         logger = get_logger()
@@ -226,21 +232,70 @@ class Evaluator:
         original_prompt = prompt
         attempts = 0
 
+        if async_mode:
+            import asyncio
+            from agent_eval.core.async_evaluator import AsyncEvaluator
+
+            logger.info("Delegating to AsyncEvaluator via asyncio.run()...")
+            async_evaluator = AsyncEvaluator(self)
+            return asyncio.run(
+                async_evaluator.evaluate_async(
+                    prompt=prompt,
+                    model_output=model_output,
+                    reference_output=reference_output,
+                    user_query=user_query,
+                    metrics=metrics,
+                    judges=judges,
+                    model=model,
+                    prompt_optimizer=prompt_optimizer,
+                    max_prompt_improvements=max_prompt_improvements,
+                    model_kwargs=model_kwargs,
+                )
+            )
+
+        cached_result = cache_instance.get(
+            prompt=prompt,
+            model_output=model_output,
+            reference_output=reference_output,
+            user_query=user_query,
+            metrics=metrics or [m.criteria for m in self.metrics],
+            judges=judges or [j.criteria for j in self.judges],
+            prompt_optimizer=prompt_optimizer,
+            max_prompt_improvements=max_prompt_improvements,
+        )
+        if cached_result:
+            logger.info("Returning cached evaluation result")
+            return cached_result
+
         while attempts < max_prompt_improvements:
             try:
                 if model is not None and (model_output is None or attempts > 0):
-                    model_output = self._generate_with_model(model, prompt, **model_kwargs)
+                    model_output = self._generate_with_model(
+                        model, prompt, **model_kwargs
+                    )
 
                 if model is None and judges:
-                    raise ValueError("'model' must be provided with evaluate with llm judges")
+                    raise ValueError(
+                        "'model' must be provided with evaluate with llm judges"
+                    )
                 if model is None and metrics:
-                    raise ValueError("Either 'model' or 'model_output' must be provided")
+                    raise ValueError(
+                        "Either 'model' or 'model_output' must be provided"
+                    )
 
-                metrics_to_run = self._resolve_metrics(metrics) if metrics else self.metrics
-                metrics_results = self._evaluate_metrics(metrics_to_run, model_output, reference_output, prompt, user_query)
+                metrics_to_run = (
+                    self._resolve_metrics(metrics) if metrics else self.metrics
+                )
+                metrics_results = self._evaluate_metrics(
+                    metrics_to_run, model_output, reference_output, prompt, user_query
+                )
 
-                judges_to_run = self._resolve_judges(judges, model) if judges else self.judges
-                judges_results = self._evaluate_judges(judges_to_run, prompt, model_output, reference_output)
+                judges_to_run = (
+                    self._resolve_judges(judges, model) if judges else self.judges
+                )
+                judges_results = self._evaluate_judges(
+                    judges_to_run, prompt, model_output, reference_output
+                )
 
                 results = self._generate_result(
                     metrics_results=metrics_results,
@@ -251,6 +306,18 @@ class Evaluator:
                     reference_output=reference_output,
                     user_query=user_query,
                     attempts=attempts,
+                )
+
+                cache_instance.set(
+                    result=results,
+                    prompt=prompt,
+                    model_output=model_output,
+                    reference_output=reference_output,
+                    user_query=user_query,
+                    metrics=metrics or [m.criteria for m in self.metrics],
+                    judges=judges or [j.criteria for j in self.judges],
+                    prompt_optimizer=prompt_optimizer,
+                    max_prompt_improvements=max_prompt_improvements,
                 )
 
                 if not prompt_optimizer:
@@ -271,7 +338,9 @@ class Evaluator:
 
                 prompt = new_prompt
                 attempts += 1
-                logger.info(f"Re-running evaluation with improved prompt (attempt {attempts})")
+                logger.info(
+                    f"Re-running evaluation with improved prompt (attempt {attempts})"
+                )
 
             except Exception as e:
                 logger.exception("Evaluation failed")

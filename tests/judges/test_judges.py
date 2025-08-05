@@ -31,7 +31,7 @@ class TestLLMJudgeReferenceOnly:
             reference_output=reference_output,
             judges=criteria,
             prompt_optimizer=True,
-            max_prompt_improvements=2
+            max_prompt_improvements=2,
         )
 
     def test_fluency_minor_errors(self):

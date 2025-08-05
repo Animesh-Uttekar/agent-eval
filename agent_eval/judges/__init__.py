@@ -14,5 +14,5 @@ __all__ = [
     "RelevanceJudge",
     "HelpfulnessJudge",
     "SafetyJudge",
-    "CreativityJudge"
+    "CreativityJudge",
 ]

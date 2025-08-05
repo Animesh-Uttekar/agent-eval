@@ -7,13 +7,14 @@ try:
 except ImportError:
     raise ImportError("Please install `unbabel-comet` with: pip install unbabel-comet")
 
+
 class COMETMetric(BaseMetric):
     """
-    COMET (Crosslingual Optimized Metric for Evaluation of Translation) is a multilingual 
-    metric trained on human-labeled data to assess adequacy and fluency in translations 
+    COMET (Crosslingual Optimized Metric for Evaluation of Translation) is a multilingual
+    metric trained on human-labeled data to assess adequacy and fluency in translations
     or text generation tasks.
 
-    COMET uses pre-trained models fine-tuned on quality estimation tasks and requires 
+    COMET uses pre-trained models fine-tuned on quality estimation tasks and requires
     the source input, machine translation (generated), and reference text.
 
     Attributes:
@@ -33,7 +34,9 @@ class COMETMetric(BaseMetric):
         return 1 / (1 + exp(-score))
 
     @loggable
-    def evaluate(self, generated, reference=None, prompt=None, user_query=None, **kwargs):
+    def evaluate(
+        self, generated, reference=None, prompt=None, user_query=None, **kwargs
+    ):
         """
         Evaluate the generated text using the COMET metric.
 

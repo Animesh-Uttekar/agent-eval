@@ -18,7 +18,9 @@ class TestCOMETMetric:
     def test_translation_agent(self):
         prompt = "Translate the sentence to German"
         model_output = "Das Wetter ist heute schön und ich gehe spazieren."
-        reference_output = "Das Wetter ist heute schön, und ich mache einen Spaziergang."
+        reference_output = (
+            "Das Wetter ist heute schön, und ich mache einen Spaziergang."
+        )
         user_query = "The weather is nice today, and I'm going for a walk."
         result = self.evaluator.evaluate(
             prompt=prompt,
@@ -26,7 +28,7 @@ class TestCOMETMetric:
             reference_output=reference_output,
             user_query=user_query,
             metrics=["comet"],
-            prompt_optimizer=True
+            prompt_optimizer=True,
         )
         assert result["metrics"]["comet"]["score"] >= 0.6
 
@@ -42,7 +44,7 @@ class TestCOMETMetric:
             user_query=user_query,
             metrics=["comet"],
             prompt_optimizer=True,
-            max_prompt_improvements=2
+            max_prompt_improvements=2,
         )
         assert result["metrics"]["comet"]["score"] >= 0.4
 
@@ -57,6 +59,6 @@ class TestCOMETMetric:
             reference_output=reference_output,
             user_query=user_query,
             metrics=["comet"],
-            prompt_optimizer=True
+            prompt_optimizer=True,
         )
         assert result["metrics"]["comet"]["score"] <= 0.3
