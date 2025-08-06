@@ -6,6 +6,7 @@ from .ter import TERMetric
 from .gleu import GLEUMetric
 from .lepor import LEPORMetric
 from .comet import COMETMetric
+from .bleurt import BLEURTMetric
 
 __all__ = [
     "BLEUMetric",
@@ -19,4 +20,5 @@ __all__ = [
     "GLEUMetric",
     "LEPORMetric",
     "COMETMetric",
+    "BLEURTMetric"
 ]
