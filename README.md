@@ -345,7 +345,11 @@ More judges are being added soon. Each judge runs an LLM to assess the quality o
 
 ### COMET
 - Translation quality estimated using multilingual embeddings and a reference. It evaluates adequacy and fluency by comparing how close the model output is to human reference in meaning and grammar, leveraging pretrained models.
-- Improve prompt by:Guiding the model to produce fluent, contextually accurate responses that preserve the core meaning of the reference. You can do this by including clear task instructions, expected tone, and emphasizing fidelity to the source content.
+- Improve prompt by: Guiding the model to produce fluent, contextually accurate responses that preserve the core meaning of the reference. You can do this by including clear task instructions, expected tone, and emphasizing fidelity to the source content.
+
+### BLEURT
+- Learned evaluation metric fine-tuned on human ratings. Measures how natural, fluent and semantically similar the model output is to the reference.
+- Improve prompt by: Including examples of high-quality answers, guiding tone and style and clarifying expectations to help the model generate more human-preferred responses.
 
 Use metrics when you have reference outputs for comparison.
 
