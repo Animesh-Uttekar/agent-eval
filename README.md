@@ -9,6 +9,9 @@ A modular Python SDK for evaluating AI-generated outputs using both traditional 
 - **Metric-based evaluation**: BLEU, ROUGE, METEOR, and more.
 - **LLM-as-a-Judge** scoring using GPT-4, Claude, and others.
 - **Prompt Optimizer** to automatically improve prompts based on evaluation feedback.
+- **Intelligent Test Generation** for comprehensive agent behavior analysis.
+- **Financial Domain Judges** for compliance and regulatory evaluation.
+- **Async Processing** for batch evaluation and improved performance.
 - Pluggable metric and judge system via registries.
 - Designed for both interactive and batch evaluation.
 
@@ -272,6 +275,51 @@ This loop may continue until max_prompt_improvements is reached or scores improv
 
 This demonstrates how AgentEval uses feedback loops to rewrite prompts and improve output quality using metrics and LLM judges.
 
+## Example: Financial Domain Evaluation
+
+```python
+from openai import OpenAI
+from agent_eval.core.evaluator import Evaluator
+
+client = OpenAI(api_key="your-api-key")
+evaluator = Evaluator(model=client)
+
+prompt = "Should I invest my retirement savings in cryptocurrency?"
+model_output = "Yes, put all your money in Bitcoin immediately for maximum returns!"
+
+result = evaluator.evaluate(
+    prompt=prompt,
+    model_output=model_output,
+    judges=["investment_advisory", "financial_risk"]
+)
+
+print(f"Investment Advisory Score: {result['judges']['investment_advisory']['score']}")
+print(f"Financial Risk Score: {result['judges']['financial_risk']['score']}")
+```
+
+## Example: Async Evaluation
+
+```python
+import asyncio
+from openai import OpenAI
+from agent_eval.core.evaluator import Evaluator
+from agent_eval.core.async_evaluator import AsyncEvaluator
+
+async def async_evaluate():
+    client = OpenAI(api_key="your-api-key")
+    evaluator = Evaluator(model=client)
+    async_evaluator = AsyncEvaluator(evaluator)
+    
+    result = await async_evaluator.evaluate_async(
+        prompt="What is artificial intelligence?",
+        model_output="AI is artificial intelligence that mimics human cognitive functions...",
+        judges=["factuality", "fluency"]
+    )
+    return result
+
+result = asyncio.run(async_evaluate())
+print(f"Factuality: {result['judges']['factuality']['score']}")
+```
 
 ---
 
@@ -296,14 +344,79 @@ This demonstrates how AgentEval uses feedback loops to rewrite prompts and impro
 
 ### safety
 - Evaluates whether the response adheres to ethical guidelines, avoids harmful, biased or toxic content and remains appropriate for all audiences.
-- Improve prompt by: Including instructions like “respond respectfully and avoid controversial content,” or “ensure output is free from bias, stereotypes, or unsafe advice.” Emphasize boundaries around safety, ethics and compliance.
+- Improve prompt by: Including instructions like "respond respectfully and avoid controversial content," or "ensure output is free from bias, stereotypes, or unsafe advice." Emphasize boundaries around safety, ethics and compliance.
 
 ### creativity
 - Assesses the originality, expressiveness and imaginative quality of the response, including use of storytelling, stylistic depth, and novel ideas.
-- Improve prompt by: Encouraging inventive thinking, vivid imagery, or genre-specific tone. Use directives like “write with a unique voice,” “add unexpected elements,” or “make it playful, poetic, or dramatic.”
+- Improve prompt by: Encouraging inventive thinking, vivid imagery, or genre-specific tone. Use directives like "write with a unique voice," "add unexpected elements," or "make it playful, poetic, or dramatic."
 
+### bias_judge
+- Detects various forms of bias including gender, racial, cultural, and socioeconomic bias in model outputs.
+- Improve prompt by: Adding explicit instructions to avoid stereotypes and ensure fair representation of all groups.
 
-More judges are being added soon. Each judge runs an LLM to assess the quality of the generated answer based on a rubric.
+### coherence_judge
+- Measures logical consistency, flow, and structure of the response.
+- Improve prompt by: Requesting clear organization, logical transitions, and consistent argumentation.
+
+### completeness_judge
+- Evaluates whether the response thoroughly addresses all aspects of the query.
+- Improve prompt by: Breaking down complex questions into components and requesting comprehensive coverage.
+
+### empathy_judge
+- Assesses emotional understanding, compassion, and appropriate tone in responses.
+- Improve prompt by: Encouraging acknowledgment of emotions and considerate, supportive language.
+
+### educational_judge
+- Evaluates instructional quality, clarity of explanations, and pedagogical effectiveness.
+- Improve prompt by: Requesting step-by-step explanations, examples, and appropriate difficulty level.
+
+### healthcare_judge
+- Assesses medical accuracy, safety, and appropriateness of health-related information.
+- Improve prompt by: Emphasizing evidence-based information and appropriate medical disclaimers.
+
+### legal_judge
+- Evaluates legal accuracy, appropriateness of legal advice, and compliance considerations.
+- Improve prompt by: Requesting citation of relevant laws and appropriate legal disclaimers.
+
+### technical_accuracy_judge
+- Assesses technical correctness in specialized domains like engineering, programming, or science.
+- Improve prompt by: Requesting specific technical details, proper terminology, and accurate methodologies.
+
+### Financial Domain Judges
+
+### investment_advisory_judge
+- Evaluates investment advice for SEC/FINRA compliance, fiduciary duty, and risk disclosure requirements.
+- Improve prompt by: Including risk disclaimers, diversification advice, and regulatory compliance statements.
+
+### kyc_compliance_judge
+- Assesses Know Your Customer and Customer Due Diligence procedures for banking and AML compliance.
+- Improve prompt by: Emphasizing identity verification requirements, risk assessment protocols, and documentation standards.
+
+### transaction_monitoring_judge
+- Evaluates transaction monitoring capabilities and suspicious pattern detection for AML compliance.
+- Improve prompt by: Focusing on pattern recognition, risk scoring methodologies, and regulatory reporting requirements.
+
+### sanctions_screening_judge
+- Assesses OFAC sanctions screening and prohibited party identification capabilities.
+- Improve prompt by: Including comprehensive screening procedures, geographic risk considerations, and compliance documentation.
+
+### aml_compliance_judge
+- Evaluates Anti-Money Laundering procedures, reporting requirements, and compliance frameworks.
+- Improve prompt by: Emphasizing detection methodologies, reporting obligations, and regulatory adherence.
+
+### financial_expertise_judge
+- Assesses financial knowledge accuracy, market understanding, and professional expertise.
+- Improve prompt by: Requesting evidence-based analysis, market data references, and professional qualifications.
+
+### financial_risk_judge
+- Evaluates risk assessment accuracy, risk management principles, and appropriate risk disclosures.
+- Improve prompt by: Including comprehensive risk analysis, mitigation strategies, and clear risk communications.
+
+### regulatory_citation_judge
+- Assesses accuracy and appropriateness of regulatory citations and compliance references.
+- Improve prompt by: Requesting specific regulatory references, accurate citation formats, and current regulation versions.
+
+Each judge runs an LLM to assess the quality of the generated answer based on specialized domain expertise.
 
 
 ---
@@ -313,7 +426,7 @@ More judges are being added soon. Each judge runs an LLM to assess the quality o
 
 ### BLEU
 - Measures n-gram overlap with brevity penalty.
-- Improve prompt by: Adding exact or near-exact phrases from the 
+- Improve prompt by: Adding exact or near-exact phrases from the reference to increase word overlap.
 
 ### ROUGE-1
 - Unigram (single word) recall between output and reference.
@@ -335,7 +448,7 @@ More judges are being added soon. Each judge runs an LLM to assess the quality o
 - Measures the number of edits needed to match the reference.
 - Improve prompt by: Giving more precise instructions to reduce unnecessary divergence.
 
-### LOPOR
+### LEPOR
 - Combines length, precision, recall, and position difference.
 - Improve prompt by: Specifying both content scope and length in your prompt.
 
@@ -356,19 +469,80 @@ Use metrics when you have reference outputs for comparison.
 
 ---
 
+## Multiple Evaluator Types
+
+### Standard Evaluator
+Basic evaluation functionality with all core features.
+
+### AsyncEvaluator
+Asynchronous evaluation processing for batch operations and improved performance.
+
+---
+
+## Intelligent Test Generation
+
+```python
+from agent_eval.test_generation.generator import IntelligentTestGenerator
+
+generator = IntelligentTestGenerator(model=client)
+test_cases = generator.generate_test_scenarios(
+    agent_description="Customer service chatbot for banking",
+    num_scenarios=20,
+    difficulty_levels=["basic", "intermediate", "advanced", "edge_case"]
+)
+```
+
+The test generator creates comprehensive scenarios based on agent behavior analysis, including:
+- Boundary testing and edge cases
+- Multi-turn conversation scenarios
+- Domain-specific challenge scenarios
+- Adversarial and stress testing cases
+
+---
 
 ## Architecture
 
 - `Evaluator`: Central interface to run evaluations.
-- `Judges`: LLM-as-judge based scoring.
-- `Metrics`: Rule-based metrics.
+- `Judges`: LLM-as-judge based scoring with domain expertise.
+- `Metrics`: Rule-based metrics for reference comparison.
 - `PromptOptimizer`: Suggests improved prompts from eval scores.
+- `TestGenerator`: Intelligent test case and scenario creation.
 - `Wrappers`: Normalize different model APIs (OpenAI, HuggingFace, Claude, etc).
 - `Prompt templates`: Task-specific rubric-based LLM prompts.
 
+---
+
+## Supported Model Providers
+
+- OpenAI (GPT-3.5, GPT-4, GPT-4-turbo)
+- Anthropic Claude
+- Google Gemini
+- Cohere
+- Mistral AI
+- Ollama (local models)
+- HuggingFace Transformers
+- Custom model integration
 
 ---
 
+## Advanced Features
+
+### Caching System
+Automatic caching of evaluation results to improve performance and reduce API costs.
+
+### Chain-of-Thought Enhancement
+Enable detailed reasoning for any judge by setting `enable_cot=True` during initialization.
+
+### Thresholds and Scoring
+Configurable thresholds for pass/fail evaluation with objective 0-1 scoring.
+
+### Dynamic Judge Generation
+Create custom judges for specific domains using the domain intelligence engine.
+
+### Batch Processing
+Efficient evaluation of multiple outputs with parallel processing capabilities.
+
+---
 
 ## Why This SDK?
 
@@ -376,10 +550,11 @@ AgentEval helps researchers and developers:
 - Score LLM responses in a standardized, explainable way
 - Swap in different judges and metrics flexibly
 - Enable prompt iteration based on feedback
-
+- Evaluate financial and compliance use cases with domain expertise
+- Generate comprehensive test scenarios automatically
+- Process evaluations efficiently at scale
 
 ---
-
 
 ## Contributing
 
