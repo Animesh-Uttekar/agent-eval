@@ -273,3 +273,228 @@ Just echoes from a dusty dune...
 
 """
 )
+
+DEFAULT_INVESTMENT_ADVISORY_PROMPT = PromptTemplate(
+    """You are an expert investment compliance evaluator specializing in fiduciary standards and investment advisory regulations.
+
+#Rubric
+Evaluate investment advisory quality across these critical dimensions:
+
+**FIDUCIARY DUTY COMPLIANCE (Weight: 25%)**
+- Score 5: Demonstrates clear client-first approach, transparent conflict disclosures, proper duty of care
+- Score 4: Generally client-focused with minor disclosure gaps
+- Score 3: Adequate fiduciary awareness but inconsistent application  
+- Score 2: Limited fiduciary consideration, conflicts not addressed
+- Score 1: Fails to demonstrate fiduciary standards, potential violations
+
+**RISK DISCLOSURE & ASSESSMENT (Weight: 25%)**
+- Score 5: Comprehensive risk analysis, clear disclosure, appropriate for client profile
+- Score 4: Good risk coverage with minor omissions
+- Score 3: Basic risk disclosure, adequate but not comprehensive
+- Score 2: Limited risk discussion, inadequate disclosure
+- Score 1: Missing critical risk warnings, misleading risk representation
+
+**SUITABILITY ANALYSIS (Weight: 25%)**
+- Score 5: Thorough client profile analysis, appropriate recommendations, documented rationale
+- Score 4: Good suitability matching with minor gaps
+- Score 3: Basic suitability consideration, adequate matching
+- Score 2: Limited suitability analysis, questionable fit
+- Score 1: Poor or no suitability assessment, inappropriate recommendations
+
+**REGULATORY COMPLIANCE (Weight: 25%)**
+- Score 5: Full SEC/FINRA compliance, proper documentation, regulatory best practices
+- Score 4: Strong compliance with minor procedural gaps
+- Score 3: Generally compliant, some documentation issues
+- Score 2: Compliance gaps, regulatory risk present
+- Score 1: Multiple violations, significant regulatory non-compliance
+
+#Instructions
+- Focus specifically on investment advisory quality, not general financial advice
+- Consider both retail and institutional advisory standards
+- Evaluate compliance with SEC Investment Advisers Act and FINRA rules
+- Assess documentation quality and regulatory risk mitigation
+- Consider whether advice meets professional fiduciary standards
+
+#User Question: {user_query}
+#Assistant Response: {model_output}
+#Reference Answer: {reference_output}
+
+##Return evaluation in JSON format:
+{{
+  "score": <1-5>,
+  "reasoning": "<detailed explanation covering fiduciary duty, risk disclosure, suitability, and regulatory compliance>"
+}}""")
+
+DEFAULT_KYC_COMPLIANCE_PROMPT = PromptTemplate(
+    """You are an expert banking compliance evaluator specializing in Know Your Customer (KYC) and Customer Due Diligence (CDD) procedures.
+
+#Rubric
+Evaluate KYC compliance across these regulatory dimensions:
+
+**IDENTITY VERIFICATION (Weight: 20%)**
+- Score 5: Complete identity verification with proper documentation, multi-factor authentication
+- Score 4: Strong verification with minor documentation gaps
+- Score 3: Adequate identity checks, meets basic requirements
+- Score 2: Incomplete verification, missing key documents
+- Score 1: Poor or no identity verification, regulatory violations
+
+**CUSTOMER RISK ASSESSMENT (Weight: 25%)**
+- Score 5: Comprehensive risk profiling, appropriate risk categorization, documented methodology
+- Score 4: Good risk assessment with minor analytical gaps
+- Score 3: Basic risk evaluation, adequate categorization
+- Score 2: Limited risk analysis, questionable assessment
+- Score 1: Poor or missing risk assessment, inappropriate categorization
+
+**PEP & SANCTIONS SCREENING (Weight: 25%)**
+- Score 5: Thorough PEP identification, complete sanctions screening, ongoing monitoring
+- Score 4: Good screening with minor gaps in coverage
+- Score 3: Basic screening, meets minimum requirements
+- Score 2: Incomplete screening, missing key lists
+- Score 1: Poor or no PEP/sanctions screening, regulatory violations
+
+**CDD DOCUMENTATION (Weight: 15%)**
+- Score 5: Complete documentation, proper record keeping, regulatory compliance
+- Score 4: Good documentation with minor gaps
+- Score 3: Adequate records, meets basic requirements
+- Score 2: Incomplete documentation, compliance issues
+- Score 1: Poor or missing documentation, violations
+
+**ENHANCED DUE DILIGENCE (Weight: 15%)**
+- Score 5: Appropriate EDD triggers identified, comprehensive enhanced procedures
+- Score 4: Good EDD assessment with minor procedural gaps
+- Score 3: Basic EDD consideration, adequate procedures
+- Score 2: Limited EDD analysis, procedural deficiencies
+- Score 1: Missing EDD requirements, regulatory non-compliance
+
+#Instructions
+- Focus on BSA/AML compliance and regulatory requirements
+- Evaluate adherence to FFIEC and regulatory guidance
+- Consider both individual and corporate customer requirements
+- Assess ongoing monitoring and periodic review procedures
+- Evaluate documentation quality for regulatory examination
+
+#User Question: {user_query}
+#Assistant Response: {model_output}
+#Reference Answer: {reference_output}
+
+##Return evaluation in JSON format:
+{{
+  "score": <1-5>,
+  "reasoning": "<detailed explanation covering identity verification, risk assessment, screening, documentation, and EDD>"
+}}""")
+
+DEFAULT_TRANSACTION_MONITORING_PROMPT = PromptTemplate(
+    """You are an expert AML compliance evaluator specializing in transaction monitoring and suspicious activity detection.
+
+#Rubric
+Evaluate transaction monitoring effectiveness across these compliance dimensions:
+
+**PATTERN RECOGNITION (Weight: 25%)**
+- Score 5: Excellent identification of suspicious patterns, comprehensive analysis techniques
+- Score 4: Good pattern recognition with minor analytical gaps
+- Score 3: Basic pattern identification, adequate detection
+- Score 2: Limited pattern recognition, missed indicators
+- Score 1: Poor or no pattern analysis, critical gaps
+
+**RISK SCORING & THRESHOLDS (Weight: 20%)**
+- Score 5: Appropriate risk scoring methodology, well-calibrated thresholds, minimal false positives
+- Score 4: Good risk assessment with minor calibration issues
+- Score 3: Basic scoring approach, adequate threshold setting
+- Score 2: Inconsistent scoring, poorly set thresholds
+- Score 1: Poor risk scoring, inappropriate thresholds
+
+**RED FLAG IDENTIFICATION (Weight: 25%)**
+- Score 5: Comprehensive red flag detection, covers all major AML indicators
+- Score 4: Good indicator coverage with minor gaps
+- Score 3: Basic red flag identification, adequate coverage
+- Score 2: Limited indicator detection, missed warnings
+- Score 1: Poor red flag recognition, critical omissions
+
+**REGULATORY COMPLIANCE (Weight: 15%)**
+- Score 5: Full BSA/AML compliance, proper SAR procedures, complete documentation
+- Score 4: Strong compliance with minor procedural gaps
+- Score 3: Generally compliant, some documentation issues
+- Score 2: Compliance gaps, regulatory risk present
+- Score 1: Multiple violations, significant non-compliance
+
+**DOCUMENTATION QUALITY (Weight: 15%)**
+- Score 5: Comprehensive documentation, clear rationale, audit-ready records
+- Score 4: Good documentation with minor gaps
+- Score 3: Adequate records, meets basic requirements
+- Score 2: Incomplete documentation, quality issues
+- Score 1: Poor or missing documentation, regulatory deficiencies
+
+#Instructions
+- Focus on AML transaction monitoring and suspicious activity detection
+- Evaluate compliance with BSA requirements and SAR filing procedures
+- Consider both automated monitoring systems and manual analysis
+- Assess detection accuracy and false positive management
+- Evaluate documentation for regulatory examination readiness
+
+#User Question: {user_query}
+#Assistant Response: {model_output}
+#Reference Answer: {reference_output}
+
+##Return evaluation in JSON format:
+{{
+  "score": <1-5>,
+  "reasoning": "<detailed explanation covering pattern recognition, risk scoring, red flags, compliance, and documentation>"
+}}""")
+
+DEFAULT_SANCTIONS_SCREENING_PROMPT = PromptTemplate(
+    """You are an expert sanctions compliance evaluator specializing in OFAC and international sanctions screening procedures.
+
+#Rubric
+Evaluate sanctions screening effectiveness across these compliance dimensions:
+
+**SCREENING COMPREHENSIVENESS (Weight: 30%)**
+- Score 5: Complete multi-list screening (OFAC, UN, EU, UK), all relevant sanctions programs covered
+- Score 4: Good screening coverage with minor list gaps
+- Score 3: Basic screening, covers major sanctions lists
+- Score 2: Limited screening, missing key sanctions programs
+- Score 1: Poor or incomplete screening, major compliance gaps
+
+**ENTITY IDENTIFICATION (Weight: 25%)**
+- Score 5: Thorough entity verification, complete beneficial ownership analysis, proper name matching
+- Score 4: Good entity identification with minor verification gaps
+- Score 3: Basic entity screening, adequate identification procedures
+- Score 2: Limited entity analysis, verification deficiencies
+- Score 1: Poor entity identification, critical screening failures
+
+**GEOGRAPHIC RISK ANALYSIS (Weight: 20%)**
+- Score 5: Comprehensive jurisdictional risk assessment, embargo compliance, proper country analysis
+- Score 4: Good geographic analysis with minor risk assessment gaps
+- Score 3: Basic country screening, adequate geographic coverage
+- Score 2: Limited geographic analysis, missed jurisdictional risks
+- Score 1: Poor or no geographic screening, compliance violations
+
+**SCREENING METHODOLOGY (Weight: 15%)**
+- Score 5: Appropriate matching algorithms, optimal thresholds, comprehensive ongoing monitoring
+- Score 4: Good methodology with minor procedural improvements needed
+- Score 3: Basic screening procedures, meets minimum requirements
+- Score 2: Inadequate methodology, procedural deficiencies
+- Score 1: Poor screening procedures, systematic failures
+
+**DOCUMENTATION & COMPLIANCE (Weight: 10%)**
+- Score 5: Complete audit trail, proper record keeping, regulatory compliance documentation
+- Score 4: Good documentation with minor record keeping gaps
+- Score 3: Adequate records, meets basic compliance requirements
+- Score 2: Incomplete documentation, compliance concerns
+- Score 1: Poor or missing documentation, regulatory violations
+
+#Instructions
+- Focus on OFAC compliance and international sanctions screening
+- Evaluate adherence to 31 CFR 500 series regulations
+- Consider both automated screening systems and manual procedures
+- Assess false negative risk and screening accuracy
+- Evaluate ongoing monitoring and list update procedures
+
+#User Question: {user_query}
+#Assistant Response: {model_output}
+#Reference Answer: {reference_output}
+
+##Return evaluation in JSON format:
+{{
+  "score": <1-5>,
+  "reasoning": "<detailed explanation covering screening comprehensiveness, entity identification, geographic analysis, methodology, and documentation>"
+}}""")

@@ -1,16 +1,45 @@
 # AgentEval
 
-A modular Python SDK for evaluating AI-generated outputs using both traditional metrics (like BLEU, ROUGE, METEOR, etc) and LLM-as-a-judge methods (using GPT-4, Claude, etc). Built for evaluating GenAI agents, chatbots and prompt systems with ease.
+The **zero-coding evaluation framework** for AI agents. Automatically generates comprehensive test scenarios, discovers agent behavior patterns, and provides detailed evaluation insights - all with minimal developer effort.
+
+---
+
+## Philosophy: Zero Manual Test Writing
+
+**Traditional Approach** (what other frameworks require):
+```python
+# ❌ Manual test case writing
+test_cases = [
+    {"prompt": "test1", "expected": "output1"},
+    {"prompt": "test2", "expected": "output2"},
+    # ... 100+ manual test cases
+]
+```
+
+**AgentEval Approach** (what you actually write):
+```python
+# ✅ Automatic everything
+from agent_eval import evaluator
+
+eval_instance = evaluator(model=your_model, model_name="gpt-4")
+results = eval_instance.evaluate(
+    system_prompt="You are a healthcare AI assistant...",
+    model_output="Your AI's response",
+    generate_test_cases=True  # Automatic comprehensive testing
+)
+```
 
 ---
 
 ## Features
 
-- **Metric-based evaluation**: BLEU, ROUGE, METEOR, and more.
-- **LLM-as-a-Judge** scoring using GPT-4, Claude, and others.
-- **Prompt Optimizer** to automatically improve prompts based on evaluation feedback.
-- Pluggable metric and judge system via registries.
-- Designed for both interactive and batch evaluation.
+- **🎯 Zero Manual Testing**: Automatically generates 50+ comprehensive test scenarios
+- **🧠 Behavior Analysis**: Discovers your agent's strengths, weaknesses, and failure modes  
+- **📊 Dual Evaluation**: Traditional metrics (BLEU, ROUGE) + LLM-as-judge scoring
+- **🔄 Auto-Optimization**: Prompt optimizer improves prompts based on results
+- **🏥 Domain Intelligence**: Specialized evaluation for healthcare, finance, legal domains
+- **⚡ One-Line Setup**: `evaluator()` function handles all complexity
+- **🔒 Production Ready**: Safety, bias, and robustness testing included
 
 ---
 

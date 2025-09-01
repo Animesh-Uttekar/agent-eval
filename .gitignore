@@ -51,3 +51,7 @@ cython_debug/
 .DS_Store 
 .env
 .toml
+
+# Documentation and demo directories
+docs/
+tests/demo/

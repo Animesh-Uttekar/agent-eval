@@ -26,7 +26,7 @@ class METEORMetric(BaseMetric):
         super().__init__(criteria)
 
     @loggable
-    def evaluate(self, generated, reference=None, **kwargs):
+    def evaluate(self, generated, reference=None, prompt=None, user_query=None, **kwargs):
         """
         Evaluate generated text against reference using METEOR score.
 

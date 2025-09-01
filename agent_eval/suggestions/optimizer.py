@@ -42,7 +42,9 @@ class PromptOptimizer:
 
         for name, res in metrics_results.items():
             threshold = MetricThreshold.get_threshold(name)
-            score = float(res.get("score", 0.0))
+            score_value = res.get("score", 0.0)
+            # Handle None scores gracefully
+            score = float(score_value) if score_value is not None else 0.0
             if threshold is not None and score < threshold:
                 reason = res.get("reasoning", res.get("suggestion", "")).strip()
                 feedback_items.append(
@@ -51,7 +53,9 @@ class PromptOptimizer:
 
         for name, res in judges_results.items():
             threshold = CategoryThreshold.get_threshold(name)
-            score = float(res.get("score", 0.0))
+            score_value = res.get("score", 0.0)
+            # Handle None scores gracefully
+            score = float(score_value) if score_value is not None else 0.0
             if threshold is not None and score < threshold:
                 reason = res.get("reasoning", res.get("suggestion", "")).strip()
                 feedback_items.append(
