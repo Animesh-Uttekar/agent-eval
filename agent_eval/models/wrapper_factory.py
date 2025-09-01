@@ -28,6 +28,11 @@ class ModelWrapperFactory:
         if isinstance(model, BaseLLMWrapper):
             return model
 
+        # Handle MockModel for testing
+        if hasattr(model, 'generate') and model.__class__.__name__ == 'MockModel':
+            from agent_eval.models.mock_wrapper import MockWrapper
+            return MockWrapper(model)
+
         if provider == "openai":
             return OpenAIWrapper(model, model_name=model_name)
         elif provider in ("hf", "huggingface"):

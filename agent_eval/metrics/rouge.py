@@ -32,7 +32,7 @@ class ROUGE1Metric(BaseMetric):
         super().__init__(criteria)
 
     @loggable
-    def evaluate(self, generated, reference=None, **kwargs):
+    def evaluate(self, generated, reference=None, prompt=None, user_query=None, **kwargs):
         """
         Evaluate generated text against reference using ROUGE-1 score.
 
@@ -92,7 +92,7 @@ class ROUGE2Metric(BaseMetric):
         super().__init__(criteria)
 
     @loggable
-    def evaluate(self, generated, reference=None, **kwargs):
+    def evaluate(self, generated, reference=None, prompt=None, user_query=None, **kwargs):
         """
         Evaluate generated text against reference using ROUGE-2 score.
 
@@ -154,7 +154,7 @@ class ROUGELMetric(BaseMetric):
         super().__init__(criteria)
 
     @loggable
-    def evaluate(self, generated, reference=None, **kwargs):
+    def evaluate(self, generated, reference=None, prompt=None, user_query=None, **kwargs):
         """
         Evaluate generated text against reference using ROUGE-L score.
 

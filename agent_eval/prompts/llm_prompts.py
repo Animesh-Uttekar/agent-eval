@@ -46,40 +46,53 @@ Example 2:
 )
 
 DEFAULT_RELEVANCE_PROMPT = PromptTemplate(
-    """You are an expert data labeler evaluating retrieved context for its relevance to the user question. Score from 1 to 5 using this rubric:
+    """You are an expert evaluator assessing how relevant and on-topic the assistant's response is to the user query. Your evaluation should focus on whether the response directly addresses what was asked.
 
 #Rubric
-- Score 5: Highly relevant — Directly helps answer the question with accurate and useful information.
-- Score 4: Mostly relevant — Contains useful but possibly partial or incomplete info.
-- Score 3: Somewhat relevant — Marginally related; offers weak or tangential clues.
-- Score 2: Barely relevant — Mostly off-topic, with minor related elements.
-- Score 1: Irrelevant — Unrelated, misleading, or contains no useful information.
+A highly relevant response:
+- Directly addresses the core question or request
+- Stays focused on the specific topic asked about
+- Contains information that helps answer the user's query
+- Matches the scope and context of the question
+- Provides appropriate depth for the type of question asked
 
-Examples:
-- Score 5: Context includes facts that directly answer the question.
-- Score 3: Context mentions related entities but does not help answer.
-- Score 1: Context discusses unrelated topics or incorrect facts.
+An irrelevant response:
+- Fails to address the main question or goes completely off-topic
+- Contains mostly unrelated information
+- Misunderstands or ignores the user's actual request
+- Provides generic information when specific answers were needed
+- Discusses tangential topics without connecting to the core query
+
+When scoring, you should penalize:
+- Responses that ignore or misunderstand the user's question
+- Off-topic content that doesn't relate to the query
+- Generic answers when specific information was requested
+- Failure to address the main point or request
+- Excessive tangential information that obscures the main response
+- Mismatched scope (too broad when specific answers needed, too narrow when broad overview requested)
 
 #Instructions
-- Read the user question and assistant response.
-- Identify what kind of information is needed to answer the question.
-- Examine the retrieved context for:
-  - Directly helpful information
-  - Partially related or tangential information
-  - Unrelated or misleading content
-- Use the rubric to assign a score.
-- Be specific in reasoning: cite which context helped or didn't, and why.
+- Carefully read and understand the user query and what type of response would be most relevant
+- Evaluate how well the assistant's response addresses the specific question asked
+- Consider whether the response stays on-topic and provides useful information for the query
+- Focus on topical relevance, not correctness or helpfulness
 
-#Output Format
-Return your evaluation in JSON:
+User Question: {user_query}
+Assistant Response: {model_output}
+
+##Return your evaluation in this exact JSON format:
+
+Example 1:
 {{
-  "score": <1-5>,
-  "reasoning": "<brief explanation of your decision>"
+  "score": 2,
+  "reasoning": "The assistant provided information about general financial planning when the user specifically asked about retirement account options, mostly missing the relevant topic."
 }}
 
-#User Question: {user_query}
-#Assistant Response: {model_output}
-"""
+Example 2:
+{{
+  "score": 5,
+  "reasoning": "The assistant directly addressed the user's question about Python list comprehensions with relevant examples and explanation that perfectly matched the query scope."
+}}"""
 )
 
 DEFAULT_FACTUALITY_PROMPT = PromptTemplate(
@@ -110,9 +123,8 @@ DEFAULT_FACTUALITY_PROMPT = PromptTemplate(
 #Reminder
   The goal is to evaluate factual correctness and completeness of the response.
 
-#User Question: {user_query}
-#Assistant Response: {model_output}
-#Reference Answer: {reference_output}
+User Question: {user_query}
+Assistant Response: {model_output}
 
 ##Provide a JSON response:
 {{
@@ -273,3 +285,211 @@ Just echoes from a dusty dune...
 
 """
 )
+
+DEFAULT_INVESTMENT_ADVISORY_PROMPT = PromptTemplate(
+    """You are an expert investment compliance evaluator specializing in fiduciary standards and investment advisory regulations.
+
+#Rubric
+A high-quality investment advisory response:
+- Demonstrates clear client-first approach with transparent conflict disclosures and proper fiduciary duty
+- Provides comprehensive risk analysis and clear disclosure appropriate for client profile
+- Includes thorough client profile analysis with appropriate recommendations and documented rationale
+- Shows full SEC/FINRA compliance with proper documentation and regulatory best practices
+- Meets professional fiduciary standards with appropriate client protection measures
+
+A poor investment advisory response:
+- Fails to demonstrate fiduciary standards with potential regulatory violations
+- Missing critical risk warnings or provides misleading risk representation
+- Shows poor or no suitability assessment with inappropriate recommendations
+- Contains multiple regulatory violations or significant non-compliance issues
+- Lacks proper client protection and advisory standards
+
+When scoring, you should penalize:
+- Failure to disclose conflicts of interest or material risks
+- Inappropriate recommendations for client risk profile or objectives
+- Violation of SEC Investment Advisers Act or FINRA suitability rules
+- Missing required regulatory disclosures or documentation
+- Inadequate fiduciary duty consideration
+- Misleading performance representations or fee structures
+- Failure to consider client's financial situation and investment experience
+
+#Instructions
+- Focus specifically on investment advisory quality, not general financial advice
+- Consider both retail and institutional advisory standards
+- Evaluate compliance with SEC Investment Advisers Act and FINRA rules
+- Assess documentation quality and regulatory risk mitigation
+- Consider whether advice meets professional fiduciary standards
+- Assess regulatory compliance and client protection standards
+
+User Question: {user_query}
+Assistant Response: {model_output}
+
+##Return your evaluation in this exact JSON format:
+
+Example 1:
+{{
+  "score": 2,
+  "reasoning": "The assistant provided investment advice without proper risk disclosure and failed to assess client suitability, violating basic fiduciary standards."
+}}
+
+Example 2:
+{{
+  "score": 5,
+  "reasoning": "The assistant demonstrated excellent fiduciary conduct with comprehensive risk disclosure, thorough suitability analysis, and full regulatory compliance matching the reference standard."
+}}""")
+
+DEFAULT_KYC_COMPLIANCE_PROMPT = PromptTemplate(
+    """You are an expert banking compliance evaluator specializing in Know Your Customer (KYC) and Customer Due Diligence (CDD) procedures.
+
+#Rubric
+A comprehensive KYC compliance response:
+- Demonstrates complete identity verification with proper documentation and multi-factor authentication
+- Includes comprehensive risk profiling with appropriate risk categorization and documented methodology
+- Shows thorough PEP identification and complete sanctions screening with ongoing monitoring
+- Provides complete CDD documentation with proper record keeping and regulatory compliance
+- Implements appropriate EDD triggers with comprehensive enhanced procedures when required
+
+A deficient KYC compliance response:
+- Lacks proper identity verification or shows regulatory violations
+- Missing or inadequate customer risk assessment with inappropriate categorization
+- Poor or no PEP/sanctions screening with regulatory violations
+- Incomplete or missing documentation with compliance violations
+- Fails to identify EDD requirements or shows regulatory non-compliance
+
+When scoring, you should penalize:
+- Insufficient customer identification and verification procedures
+- Failure to conduct appropriate risk assessment or categorization
+- Missing PEP or sanctions screening requirements
+- Inadequate enhanced due diligence for high-risk customers
+- Poor documentation or record keeping practices
+- Non-compliance with BSA/AML regulatory requirements
+- Failure to implement ongoing monitoring procedures
+
+#Instructions
+- Focus on BSA/AML compliance and regulatory requirements
+- Evaluate adherence to FFIEC and regulatory guidance
+- Consider both individual and corporate customer requirements
+- Assess ongoing monitoring and periodic review procedures
+- Evaluate documentation quality for regulatory examination
+- Assess overall compliance completeness and quality
+
+User Question: {user_query}
+Assistant Response: {model_output}
+
+##Return your evaluation in this exact JSON format:
+
+Example 1:
+{{
+  "score": 2,
+  "reasoning": "The assistant provided basic identity verification steps but failed to address PEP screening and enhanced due diligence requirements, missing critical KYC compliance elements."
+}}
+
+Example 2:
+{{
+  "score": 4,
+  "reasoning": "The assistant demonstrated strong KYC procedures with comprehensive identity verification and risk assessment, though EDD trigger identification could be more detailed."
+}}""")
+
+DEFAULT_TRANSACTION_MONITORING_PROMPT = PromptTemplate(
+    """You are an expert AML compliance evaluator specializing in transaction monitoring and suspicious activity detection.
+
+#Rubric
+An effective transaction monitoring response:
+- Demonstrates excellent identification of suspicious patterns with comprehensive analysis techniques
+- Uses appropriate risk scoring methodology with well-calibrated thresholds and minimal false positives
+- Shows comprehensive red flag detection covering all major AML indicators
+- Exhibits full BSA/AML compliance with proper SAR procedures and complete documentation
+- Provides comprehensive documentation with clear rationale and audit-ready records
+
+A deficient transaction monitoring response:
+- Shows poor or no pattern analysis with critical gaps in detection
+- Uses inappropriate risk scoring with poorly set thresholds
+- Demonstrates poor red flag recognition with critical omissions
+- Contains multiple compliance violations and significant non-compliance issues
+- Lacks proper documentation or shows regulatory deficiencies
+
+When scoring, you should penalize:
+- Failure to identify suspicious transaction patterns or behaviors
+- Inappropriate risk scoring methodology or threshold settings
+- Missing critical AML red flags or indicators
+- Inadequate BSA compliance or SAR filing procedures
+- Poor documentation quality or missing audit trails
+- Excessive false positives or missed true positives
+- Non-compliance with regulatory monitoring requirements
+
+#Instructions
+- Focus on AML transaction monitoring and suspicious activity detection
+- Evaluate compliance with BSA requirements and SAR filing procedures
+- Consider both automated monitoring systems and manual analysis
+- Assess detection accuracy and false positive management
+- Evaluate documentation for regulatory examination readiness
+- Assess monitoring effectiveness and regulatory compliance
+
+User Question: {user_query}
+Assistant Response: {model_output}
+
+##Return your evaluation in this exact JSON format:
+
+Example 1:
+{{
+  "score": 2,
+  "reasoning": "The assistant identified basic transaction patterns but missed critical red flags and failed to address BSA compliance requirements for suspicious activity reporting."
+}}
+
+Example 2:
+{{
+  "score": 5,
+  "reasoning": "The assistant provided comprehensive transaction monitoring analysis with excellent pattern recognition, appropriate risk scoring, and full regulatory compliance documentation."
+}}""")
+
+DEFAULT_SANCTIONS_SCREENING_PROMPT = PromptTemplate(
+    """You are an expert sanctions compliance evaluator specializing in OFAC and international sanctions screening procedures.
+
+#Rubric
+A comprehensive sanctions screening response:
+- Demonstrates complete multi-list screening (OFAC, UN, EU, UK) with all relevant sanctions programs covered
+- Shows thorough entity verification with complete beneficial ownership analysis and proper name matching
+- Includes comprehensive jurisdictional risk assessment with embargo compliance and proper country analysis
+- Uses appropriate matching algorithms with optimal thresholds and comprehensive ongoing monitoring
+- Provides complete audit trail with proper record keeping and regulatory compliance documentation
+
+A deficient sanctions screening response:
+- Shows poor or incomplete screening with major compliance gaps
+- Demonstrates poor entity identification with critical screening failures
+- Lacks geographic screening or shows compliance violations
+- Uses poor screening procedures with systematic failures
+- Contains poor or missing documentation with regulatory violations
+
+When scoring, you should penalize:
+- Incomplete sanctions list screening (missing OFAC, UN, EU, UK lists)
+- Inadequate entity verification or beneficial ownership analysis
+- Poor name matching algorithms or inappropriate screening thresholds
+- Missing geographic risk assessment or embargo compliance gaps
+- Insufficient ongoing monitoring or list update procedures
+- Poor audit trail documentation or record keeping deficiencies
+- Non-compliance with 31 CFR 500 series regulations
+
+#Instructions
+- Focus on OFAC compliance and international sanctions screening
+- Evaluate adherence to 31 CFR 500 series regulations
+- Consider both automated screening systems and manual procedures
+- Assess false negative risk and screening accuracy
+- Evaluate ongoing monitoring and list update procedures
+- Assess screening completeness and compliance quality
+
+User Question: {user_query}
+Assistant Response: {model_output}
+
+##Return your evaluation in this exact JSON format:
+
+Example 1:
+{{
+  "score": 2,
+  "reasoning": "The assistant provided basic OFAC screening steps but failed to address international sanctions lists and geographic risk analysis, missing critical compliance requirements."
+}}
+
+Example 2:
+{{
+  "score": 5,
+  "reasoning": "The assistant demonstrated comprehensive sanctions screening with complete multi-list coverage, thorough entity verification, and full regulatory compliance documentation."
+}}""")

@@ -17,23 +17,29 @@ class CreativityJudge(BaseJudge):
         "originality-judge",
     ]
 
-    def __init__(self, model, criteria="creativity", provider=None):
-        super().__init__(model, criteria, provider)
-        self.prompt_template = DEFAULT_CREATIVITY_ORIGINALITY_PROMPT
+    def __init__(self, model, criteria="creativity", provider=None, enable_cot=False):
+        super().__init__(model, criteria, provider, enable_cot)
 
-    def judge(
-        self, prompt: str, model_output: str, reference_output: str = None
-    ) -> dict:
-        judge_prompt = self.prompt_template.format(
-            user_query=prompt,
-            model_output=model_output,
-            reference_output=reference_output or "No reference provided",
-        )
-
-        judgment_text = self.model.generate(judge_prompt)
-        parsed = self._parse_judgment(judgment_text)
-
+    def judge(self, prompt: str, model_output: str, reference_output: str = None, **kwargs) -> dict:
+        """Judge creativity using specialized prompt with optional CoT enhancement."""
+        if self.enable_cot:
+            return self._evaluate_with_cot_enhancement(prompt, model_output, reference_output)
+        else:
+            return self._evaluate_with_specialized_prompt(prompt, model_output, reference_output)
+    
+    def _get_prompt_template(self):
+        """Return the creativity-specific prompt template."""
+        return DEFAULT_CREATIVITY_ORIGINALITY_PROMPT
+    
+    def _get_judge_name(self):
+        """Return the judge name for domain-specific fields."""
+        return "creativity"
+    
+    def _get_objective_domain_fields(self, parsed: dict, score: float) -> dict:
+        """Return objective creativity-specific metrics only."""
         return {
-            "score": parsed["score"] / 5.0,
-            "reasoning": parsed["reasoning"],
+            "creativity_score": score,  # Objective 0-1 score
+            "originality_score": parsed.get("originality_score", score),  # If available from prompt
+            "style_adherence_score": parsed.get("style_score", score),  # If available from prompt
+            "narrative_quality_score": parsed.get("narrative_score", score)  # If available from prompt
         }

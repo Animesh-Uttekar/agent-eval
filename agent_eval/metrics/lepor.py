@@ -16,7 +16,7 @@ class LEPORMetric(BaseMetric):
         super().__init__(criteria)
 
     @loggable
-    def evaluate(self, generated, reference=None, **kwargs):
+    def evaluate(self, generated, reference=None, prompt=None, user_query=None, **kwargs):
         if reference is None:
             return {"score": None, "error": "Reference required for LEPOR."}
 

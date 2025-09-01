@@ -35,15 +35,13 @@ class BLEURTMetric(BaseMetric):
         self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
 
     @loggable
-    def evaluate(self, generated: str, reference: str = None, **kwargs):
+    def evaluate(self, generated: str, reference: str = None, prompt=None, user_query=None, **kwargs):
         if reference is None:
             return {"score": None, "error": "Reference required for BLEURT."}
         try:
             inputs = self.tokenizer(
-                {
-                    "text": reference,
-                    "text_pair": generated
-                },
+                reference,
+                generated,
                 return_tensors="pt",
                 padding=True,
                 truncation=True,

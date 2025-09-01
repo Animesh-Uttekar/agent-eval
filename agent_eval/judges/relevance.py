@@ -9,23 +9,29 @@ class RelevanceJudge(BaseJudge):
 
     aliases = ["relevance", "relevant", "relevance_judge", "relevance-judge"]
 
-    def __init__(self, model, criteria="relevance", provider=None):
-        super().__init__(model, criteria, provider)
-        self.prompt_template = DEFAULT_RELEVANCE_PROMPT
+    def __init__(self, model, criteria="relevance", provider=None, enable_cot=False):
+        super().__init__(model, criteria, provider, enable_cot)
 
-    def judge(
-        self, prompt: str, model_output: str, reference_output: str = None
-    ) -> dict:
-        judge_prompt = self.prompt_template.format(
-            user_query=prompt,
-            model_output=model_output,
-            reference_output=reference_output or "No reference provided",
-        )
-
-        judgment_text = self.model.generate(judge_prompt)
-        parsed = self._parse_judgment(judgment_text)
-
+    def judge(self, prompt: str, model_output: str, reference_output: str = None, **kwargs) -> dict:
+        """Judge relevance using specialized prompt with optional CoT enhancement."""
+        if self.enable_cot:
+            return self._evaluate_with_cot_enhancement(prompt, model_output, reference_output)
+        else:
+            return self._evaluate_with_specialized_prompt(prompt, model_output, reference_output)
+    
+    def _get_prompt_template(self):
+        """Return the relevance-specific prompt template."""
+        return DEFAULT_RELEVANCE_PROMPT
+    
+    def _get_judge_name(self):
+        """Return the judge name for domain-specific fields."""
+        return "relevance"
+    
+    def _get_objective_domain_fields(self, parsed: dict, score: float) -> dict:
+        """Return objective relevance-specific metrics only."""
         return {
-            "score": parsed["score"] / 5.0,
-            "reasoning": parsed["reasoning"],
+            "relevance_score": score,  # Objective 0-1 score
+            "context_alignment_score": parsed.get("context_score", score),  # If available from prompt
+            "topic_coverage_score": parsed.get("coverage_score", score),  # If available from prompt
+            "query_addressing_score": parsed.get("addressing_score", score)  # If available from prompt
         }
